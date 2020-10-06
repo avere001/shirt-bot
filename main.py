@@ -38,10 +38,10 @@ async def shirts(ctx, url_or_id: str):
 
 
 @bot.command(search_term="The thing to search for")
-async def img(ctx, search_term: str):
+async def img(ctx, *search_terms: str):
     search_url = "https://source.unsplash.com/random"
     terms = []
-    for term in search_term.split():
+    for term in search_terms:
         terms.append(re.sub(r'[\W]', '', term))
     if not terms:
         return
