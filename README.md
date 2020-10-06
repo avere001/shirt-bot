@@ -1,4 +1,10 @@
-# shirt-bot
-Get all the TKO shirts of a game automatically
+# Oh Bobbins!
+A discord bot that does a few random things for a personal discord server.
 
-Simply type `>shirts SHIRTS_URL` to gather all the shirts from your game and have your bot put them all in chat.
+# Commands
+This bot current currently supports the following commands. The commands must all be prefixed with `>`
+
+- `shirts` <tko_shirts_url>
+    - Gathers all the shirts from your TKO game.
+- `img` <search_terms>
+    - Get a random image from https://source.unsplash.com/.

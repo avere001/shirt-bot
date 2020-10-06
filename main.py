@@ -37,5 +37,23 @@ async def shirts(ctx, url_or_id: str):
         return
 
 
+@bot.command(search_term="The thing to search for")
+async def img(ctx, search_term: str):
+    search_url = "https://source.unsplash.com/random"
+    terms = []
+    for term in search_term.split():
+        terms.append(re.sub(r'[\W]', '', term))
+    if not terms:
+        return
+
+    try:
+        response = requests.head(search_url, params=','.join(terms))
+        response.raise_for_status()
+        await ctx.send(response.next.url)
+    except requests.RequestException:
+        await ctx.send("Sorry, I'm having troubles doing what you asked 😿")
+        return
+
+
 if __name__ == '__main__':
     bot.run(os.getenv("TOKEN"))
