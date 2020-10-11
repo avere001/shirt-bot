@@ -102,6 +102,7 @@ async def play_sound(ctx: Context, *search_terms: str):
 
         sound_index = random.randint(0, min(count, 20) - 1)
         sound_url = response_json['results'][sound_index]['previews']['preview-lq-mp3']
+        voice_channel: VoiceChannel = ctx.author.voice.channel
 
         # passing the URL directly results in a delay between the bot joining and sound playing
         sound_data = requests.get(sound_url).content
@@ -110,14 +111,11 @@ async def play_sound(ctx: Context, *search_terms: str):
         sound_file.seek(0)
 
         source = discord.FFmpegOpusAudio(source=sound_file, pipe=True, options='-filter:a loudnorm')
-        voice_channel: VoiceChannel = ctx.author.voice.channel
 
         voice_client: VoiceClient = ctx.guild.voice_client
-        if voice_client is None:
+        if voice_client is None or voice_client.channel != voice_channel:
             await ctx.guild.change_voice_state(channel=None)
             voice_client = await voice_channel.connect()
-        if voice_client.channel != voice_channel:
-            await ctx.guild.change_voice_state(channel=voice_channel)
 
         while True:
             try:
