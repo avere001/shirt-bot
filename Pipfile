@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 requests = "*"
-"discord.py[voice]" = "*"
+"discord.py" = {version = "*", extras = ["voice"]}
 
 [dev-packages]
 
