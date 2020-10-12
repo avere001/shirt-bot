@@ -10,4 +10,6 @@ This bot current currently supports the following commands. The commands must al
     - Get a random image from https://source.unsplash.com/.
 - `sound` <search_term>
     - Play a random sound from https://freesound.org/.
+    - Skip the current sound with `sound skip`
+    - Skip this sound and all queued sounds with `sound stop`
     - Requires `ffmpeg` and `libopus`

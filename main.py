@@ -7,13 +7,11 @@ from urllib.parse import urlparse
 import requests
 from discord.ext import commands
 from discord.ext.commands import Context
-from sound import play_sound
+from sound import queue_sound, SoundPlayer
 
 bot = commands.Bot(command_prefix='>')
 
 tko_url_template = "https://s3.amazonaws.com/jbg-blobcast-artifacts/TeeKOGame/{}/shirtimage-{}.png"
-
-
 
 
 @bot.command(url_or_id="URL (or ID) of the TKO shirts")
@@ -60,7 +58,18 @@ async def img(ctx, *search_terms: str):
 
 @bot.command(search_term="The thing to search for")
 async def sound(ctx: Context, *search_terms: str):
-    await play_sound(ctx, *search_terms)
+    if len(search_terms) == 0:
+        await ctx.send("Nothing is not a sound, sorry!")
+        return
+
+    sound_player = SoundPlayer.get_or_create(ctx.guild)
+    if 'skip' in search_terms[0]:
+        await sound_player.skip()
+    elif 'stop' in search_terms[0]:
+        await sound_player.stop()
+    else:
+        await queue_sound(ctx, *search_terms)
+
 
 
 
