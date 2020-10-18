@@ -10,9 +10,8 @@ from tempfile import TemporaryFile, TemporaryDirectory
 import aiohttp
 import discord
 import requests
-from discord import VoiceChannel, VoiceClient, Guild
+from discord import VoiceChannel, Guild
 from discord.ext.commands import Context
-
 from discord.opus import load_opus
 
 load_opus('libopus.so.0')
@@ -28,7 +27,6 @@ class SoundPlayer:
 
     def __init__(self, guild: Guild):
         self.guild = guild
-        self.voice_client: VoiceClient = guild.voice_client
         self.sound_queue = Queue()
         self.action_queue = Queue()
 
@@ -46,7 +44,7 @@ class SoundPlayer:
 
     async def _push_action(self, action: str):
         max_queue_size = self.sound_queue.qsize()
-        if self.voice_client.is_playing():
+        if self.guild.voice_client.is_playing():
             max_queue_size += 1
         if self.action_queue.qsize() < max_queue_size:
             await self.action_queue.put(action)
@@ -58,30 +56,39 @@ class SoundPlayer:
         await self.action_queue.put('stop')
 
     async def _wait_for_player(self):
-        while self.voice_client.is_playing():
+        while self.guild.voice_client.is_playing():
             await asyncio.sleep(.1)
             if not self.action_queue.empty():
                 action = await self.action_queue.get()
                 if action == 'skip':
-                    self.voice_client.stop()
+                    self.guild.voice_client.stop()
                 elif action == 'stop':
-                    self.voice_client.stop()
+                    self.guild.voice_client.stop()
                     # clear the queues
-                    while not self.sound_queue.empty():
-                        await self.sound_queue.get()
-                    while not self.action_queue.empty():
-                        await self.action_queue.get()
+                    await self._clear_queues()
+
+    async def _clear_queues(self):
+        # clear the queues
+        while not self.sound_queue.empty():
+            await self.sound_queue.get()
+        while not self.action_queue.empty():
+            await self.action_queue.get()
 
     async def _run(self):
-        while True:
-            sound = await self.sound_queue.get()
-            if self.voice_client is None:
-                await self.guild.change_voice_state(channel=None)
-                self.voice_client = await sound.voice_channel.connect()
-            elif sound.voice_channel != self.voice_client.channel:
-                await self.guild.change_voice_state(channel=sound.voice_channel)
-            self.voice_client.play(sound.source)
-            await self._wait_for_player()
+        try:
+            while True:
+                sound = await self.sound_queue.get()
+                if self.guild.voice_client is None:
+                    await self.guild.change_voice_state(channel=None)
+                    await sound.voice_channel.connect()
+                elif sound.voice_channel != self.guild.voice_client.channel:
+                    await self.guild.change_voice_state(channel=sound.voice_channel)
+                self.guild.voice_client.play(sound.source)
+                await self._wait_for_player()
+        except Exception as e:
+            # If we don't do this, the bot can't join voice until it restarts.
+            del self.sound_players[self.guild]
+            raise
 
 
 async def queue_sound(ctx: Context, *search_terms: str):
