@@ -63,9 +63,9 @@ async def sound(ctx: Context, *search_terms: str):
         return
 
     sound_player = SoundPlayer.get_or_create(ctx.guild)
-    if 'skip' in search_terms[0]:
+    if 'skip' == search_terms[0].lower():
         await sound_player.skip()
-    elif 'stop' in search_terms[0]:
+    elif 'stop' == search_terms[0].lower():
         await sound_player.stop()
     else:
         await queue_sound(ctx, *search_terms)
